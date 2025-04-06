@@ -1,16 +1,100 @@
-# This is a sample Python script.
+import glob
+import os
+import numpy as np
+import cv2 as cv
+from flask import Flask, request, send_file, jsonify, session
+from flask_cors import CORS
+import json
+import urllib.parse
+import random
+import db_manager
+from utils import girl_images
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+
+app = Flask(__name__)
+SESSION_TYPE = 'redis'
+app.config['SECRET_KEY'] = 'very_secret'
+app.secret_key = 'very_secret'
+app.config.from_object(__name__)
+CORS(app)
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+def get_new_image_path(user_id, file_name):
+    new_user_id_dir = os.path.join('user_images', f'{user_id}')
+    os.makedirs(new_user_id_dir, exist_ok=True)
+    dir_list = glob.glob(f'{new_user_id_dir}/*')
+    dir_count = len(dir_list)
+    new_image_path = os.path.join(new_user_id_dir, f'{dir_count:09}_{file_name}')
+    return new_image_path
 
 
-# Press the green button in the gutter to run the script.
+@app.route('/buy-monthly-premium', methods=['GET'])
+def buy_monthly_premium():
+    try:
+        if random.randint(0, 1) == 1:
+            return {'purchase': False}
+
+        client_id = request.args.get('id')
+        db_manager.buy_premium_with_client_id(client_id=client_id)
+        return {'purchase': True}
+
+    except ...:
+        return {'purchase': False}
+
+
+@app.route('/buy-yearly-premium', methods=['GET'])
+def buy_yearly_premium():
+    ...
+
+
+@app.route('/cancel-premium', methods=['GET'])
+def cancel_premium():
+    try:
+        client_id = request.args.get('id')
+        db_manager.cancel_premium_with_client_id(client_id=client_id)
+        return {'cancel': True}
+    except ...:
+        return {'cancel': False}
+
+
+@app.route('/get-all-video-urls', methods=['GET'])
+def get_all_video_urls():
+    ...
+
+
+@app.route('/upload-image-and-rate', methods=['POST'])
+def upload_image_and_rate():
+    try:
+        file = None
+        client_id = request.args.get('id')
+        is_male = bool(request.args.get('is_male'))
+        birthday = request.args.get('birthday')
+
+        if 'image' in request.files:
+            file = request.files['image']
+
+        if not file:
+            print('File is not here', file)
+            return {'images_to_rate': []}, 400
+
+        file_name = file.filename
+        if not file_name:
+            return jsonify({'error': 'No selected file'}), 400
+
+        user_id = db_manager.create_new_user_and_get_user(birthday=birthday, is_male=is_male)
+
+        file_bytes = np.fromfile(file, dtype=np.uint8)
+        img = cv.imdecode(file_bytes, cv.IMREAD_COLOR)
+
+        session_img_path = get_new_image_path(user_id, file_name)
+        cv.imwrite(session_img_path, img)
+        db_manager.create_new_image_record(user_id=user_id, is_male=is_male)
+
+        return {'images_to_rate': girl_images}
+    except ...:
+        print('Error happend')
+        return {'images_to_rate': []}, 404
+
+
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    app.run(host='0.0.0.0', port=8083)

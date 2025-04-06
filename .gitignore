@@ -1,5 +1,5 @@
 **/__pycache__/
 .idea
-./user_uploads/**
-/user_uploads
+./user_images/**
+/user_images
 desktop.ini
