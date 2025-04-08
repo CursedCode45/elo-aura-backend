@@ -19,12 +19,12 @@ app.config.from_object(__name__)
 CORS(app)
 
 
-def get_new_image_path(user_id, file_name):
+def get_new_image_path(user_id, file_extension):
     new_user_id_dir = os.path.join('user_images', f'{user_id}')
     os.makedirs(new_user_id_dir, exist_ok=True)
     dir_list = glob.glob(f'{new_user_id_dir}/*')
     dir_count = len(dir_list)
-    new_image_path = os.path.join(new_user_id_dir, f'{dir_count:09}_{file_name}')
+    new_image_path = os.path.join(new_user_id_dir, f'{dir_count}{file_extension}')
     return new_image_path
 
 
@@ -35,31 +35,23 @@ def buy_monthly_premium():
             return {'purchase': False}
 
         client_id = request.args.get('id')
-        db_manager.buy_premium_with_client_id(client_id=client_id)
+        db_manager.buy_monthly_premium_with_client_id(client_id=client_id)
         return {'purchase': True}
-
     except ...:
         return {'purchase': False}
-
-
-@app.route('/buy-yearly-premium', methods=['GET'])
-def buy_yearly_premium():
-    ...
 
 
 @app.route('/cancel-premium', methods=['GET'])
 def cancel_premium():
     try:
+        if random.randint(0, 1) == 1:
+            return {'cancel': False}
+
         client_id = request.args.get('id')
         db_manager.cancel_premium_with_client_id(client_id=client_id)
         return {'cancel': True}
     except ...:
         return {'cancel': False}
-
-
-@app.route('/get-all-video-urls', methods=['GET'])
-def get_all_video_urls():
-    ...
 
 
 @app.route('/upload-image-and-rate', methods=['POST'])
@@ -81,14 +73,15 @@ def upload_image_and_rate():
         if not file_name:
             return jsonify({'error': 'No selected file'}), 400
 
-        user_id = db_manager.create_new_user_and_get_user(birthday=birthday, is_male=is_male)
+        user_id = db_manager.get_user_from_client_id(client_id=client_id, birthday=birthday, is_male=is_male)[0]
 
         file_bytes = np.fromfile(file, dtype=np.uint8)
         img = cv.imdecode(file_bytes, cv.IMREAD_COLOR)
 
-        session_img_path = get_new_image_path(user_id, file_name)
+        file_extension = f'.{file_name.split(".")[-1]}'
+        session_img_path = get_new_image_path(user_id, file_extension)
         cv.imwrite(session_img_path, img)
-        db_manager.create_new_image_record(user_id=user_id, is_male=is_male)
+        db_manager.create_new_image_record(user_id=user_id, is_male=is_male, img_format=file_extension)
 
         return {'images_to_rate': girl_images}
     except ...:

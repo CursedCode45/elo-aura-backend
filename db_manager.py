@@ -31,11 +31,13 @@ def create_users_table(cur=None):
     cur.execute('''
     CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
-        is_premium BOOLEAN DEFAULT false,
-        birthday DATE DEFAULT NULL,
+        client_id TEXT NOT NULL,
+        birthday DATE NOT NULL,
         is_male BOOLEAN NOT NULL,
         email TEXT DEFAULT '',
-        premium_purchase_date TIMESTAMP NULL
+        is_premium BOOLEAN DEFAULT false,
+        premium_purchase_time TIMESTAMP NULL,
+        created_at TIMESTAMPTZ DEFAULT now()
     );
     ''')
 
@@ -46,10 +48,11 @@ def create_images_table(cur=None):
     CREATE TABLE IF NOT EXISTS images (
         id SERIAL PRIMARY KEY,
         user_id INT NOT NULL,
-        score FLOAT DEFAULT 1000,
+        score FLOAT DEFAULT 1200,
         is_male BOOLEAN NOT NULL,
         url TEXT NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES users(id)
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        created_at TIMESTAMPTZ DEFAULT now()
     );
     ''')
 
@@ -61,7 +64,8 @@ def create_ratings_table(cur=None):
         id SERIAL PRIMARY KEY,
         image1_id INT NOT NULL,
         image2_id INT NOT NULL,
-        is_image1_voted BOOLEAN NOT NULL
+        is_image1_voted BOOLEAN NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT now()
         
     );
     ''')
@@ -73,21 +77,46 @@ create_ratings_table()
 
 
 @cur_wrapper
-def create_new_user_and_get_user(birthday: str, is_male: bool, cur=None) -> int:
-    cur.execute(f'''
-    INSERT INTO users (birthday, is_male) 
-    VALUES ('{birthday}', {is_male})
-    RETURNING id;;
-    ''')
-    db_user_id = cur.fetchone()[0]
-    return db_user_id
+def get_user_from_client_id(client_id: str, birthday: str, is_male: bool, cur=None):
+    cur.execute(f'''SELECT * FROM users WHERE client_id = '{client_id}';''')
+    user = cur.fetchone()
+
+    # If user doesn't exist, create one
+    if not user:
+        cur.execute(f'''
+            INSERT INTO users (client_id, birthday, is_male) 
+            VALUES ('{client_id}', '{birthday}', {is_male})
+            RETURNING *;
+        ''')
+        user = cur.fetchone()
+        return user
+    ###################################
+
+    # (id, client_id, birthday, is_male, email, is_premium, premium_purchase_date, created_at)
+    return user
 
 
 @cur_wrapper
-def create_new_image_record(user_id: int, is_male: bool, cur=None) -> None:
+def create_new_image_record(user_id: int, is_male: bool, img_format: str = '.jpg', cur=None) -> tuple:
     cur.execute(f'''
     INSERT INTO images (is_male, url, user_id) 
-    VALUES ({is_male},
-    (concat('user_images/{user_id}/', currval('images_id_seq')::text, '.jpg')),
-    {user_id});
+    VALUES (
+    {is_male},
+    (concat('user_images/{user_id}/', currval('images_id_seq')::text, '{img_format}')),
+    {user_id}
+    )
+    RETURNING *;
     ''')
+    image = cur.fetchone()
+    # (id, user_id, score, is_male, is_male, url, created_at)
+    return image
+
+
+@cur_wrapper
+def buy_monthly_premium_with_client_id(client_id, cur=None):
+    cur.execute(f'''UPDATE users SET is_premium = TRUE, premium_purchase_time = NOW() WHERE client_id = '{client_id}';''')
+
+
+@cur_wrapper
+def cancel_premium_with_client_id(client_id, cur=None):
+    cur.execute(f'''UPDATE users SET is_premium = FALSE, premium_purchase_time = NULL WHERE client_id = '{client_id}';''')
