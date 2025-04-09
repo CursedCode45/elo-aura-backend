@@ -3,3 +3,17 @@
 ./user_images/**
 /user_images
 desktop.ini
+
+.vercel
+*.log
+*.pyc
+__pycache__
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/

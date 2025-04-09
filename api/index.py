@@ -2,12 +2,10 @@ import glob
 import os
 import numpy as np
 import cv2 as cv
-from flask import Flask, request, send_file, jsonify, session
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-import json
-import urllib.parse
 import random
-import db_manager
+from api import db_manager
 from utils import girl_images
 
 
@@ -20,7 +18,7 @@ CORS(app)
 
 
 def get_new_image_path(user_id, file_extension):
-    new_user_id_dir = os.path.join('user_images', f'{user_id}')
+    new_user_id_dir = os.path.join('../user_images', f'{user_id}')
     os.makedirs(new_user_id_dir, exist_ok=True)
     dir_list = glob.glob(f'{new_user_id_dir}/*')
     dir_count = len(dir_list)
