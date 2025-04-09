@@ -1,5 +1,4 @@
 import psycopg2
-import os
 
 
 HOST = '127.0.0.1'
