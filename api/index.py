@@ -89,6 +89,6 @@ def get_new_image_path(user_id, file_extension):
 #         return {'images_to_rate': []}, 404
 
 
-@app.route('/')
+@app.route('/hi', methods=['GET'])
 def upload_image_and_rate():
     return 'hellooooooo'
