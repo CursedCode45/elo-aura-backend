@@ -1,19 +1,19 @@
 import glob
 import os
-import numpy as np
-import cv2 as cv
 from flask import Flask, request, jsonify
-from flask_cors import CORS
-import random
-from utils import girl_images
+# import numpy as np
+# import cv2 as cv
+# from flask_cors import CORS
+# import random
+# from utils import girl_images
 
 
 app = Flask(__name__)
-SESSION_TYPE = 'redis'
-app.config['SECRET_KEY'] = 'very_secret'
-app.secret_key = 'very_secret'
-app.config.from_object(__name__)
-CORS(app)
+# SESSION_TYPE = 'redis'
+# app.config['SECRET_KEY'] = 'very_secret'
+# app.secret_key = 'very_secret'
+# app.config.from_object(__name__)
+# CORS(app)
 
 
 def get_new_image_path(user_id, file_extension):
@@ -92,5 +92,3 @@ def get_new_image_path(user_id, file_extension):
 @app.route('/', methods=['POST'])
 def upload_image_and_rate():
     return 'hellooooooo'
-
-
