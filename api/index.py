@@ -5,7 +5,7 @@ import numpy as np
 import cv2 as cv
 from flask_cors import CORS
 import random
-from utils import girl_images
+# from utils import girl_images
 
 
 app = Flask(__name__)
