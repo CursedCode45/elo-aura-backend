@@ -93,5 +93,4 @@ def get_new_image_path(user_id, file_extension):
 def upload_image_and_rate():
     return 'hellooooooo'
 
-if __name__ == '__main__':
-    app.run()
+
