@@ -4,16 +4,16 @@ from flask import Flask, request, jsonify
 # import numpy as np
 # import cv2 as cv
 # import random
-from utils import girl_images
+# from utils import girl_images
 
-# from flask_cors import CORS
+from flask_cors import CORS
 
 app = Flask(__name__)
 # SESSION_TYPE = 'redis'
 # app.config['SECRET_KEY'] = 'very_secret'
 # app.secret_key = 'very_secret'
 # app.config.from_object(__name__)
-# CORS(app)
+CORS(app)
 
 
 def get_new_image_path(user_id, file_extension):
@@ -89,6 +89,6 @@ def get_new_image_path(user_id, file_extension):
 #         return {'images_to_rate': []}, 404
 
 
-@app.route('/hi', methods=['GET'])
+@app.route('/', methods=['GET'])
 def upload_image_and_rate():
     return 'hellooooooo'
