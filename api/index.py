@@ -1,8 +1,8 @@
 import glob
 import os
 from flask import Flask, request, jsonify
-import numpy as np
-# import cv2 as cv
+# import numpy as np
+import cv2 as cv
 # import random
 # from utils import girl_images
 
