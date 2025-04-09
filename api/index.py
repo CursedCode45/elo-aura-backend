@@ -3,10 +3,10 @@ import os
 from flask import Flask, request, jsonify
 import numpy as np
 import cv2 as cv
-from flask_cors import CORS
 import random
 from utils import girl_images
 
+# from flask_cors import CORS
 
 app = Flask(__name__)
 # SESSION_TYPE = 'redis'
