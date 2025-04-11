@@ -26,8 +26,6 @@ def get_new_image_path(user_id, file_extension):
     return new_image_path
 
 
-
-
 @app.route('/buy-monthly-premium', methods=['GET'])
 def buy_monthly_premium():
     try:
