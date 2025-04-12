@@ -6,16 +6,15 @@ from dotenv import load_dotenv
 load_dotenv()
 url = os.environ.get("SUPABASE_URL")
 key = os.environ.get("SUPABASE_KEY")
-supabase: Client = create_client(url, key)
 
 
-with open("../user_images/1/16.jpg", "rb") as f:
+def save_binary_image_to_bucket(binary_image, bucket_path):
+    supabase = create_client(url, key)
     response = supabase.storage.from_("user-images").upload(
-        file=f,
-        path="1/16.jpg",
+        file=binary_image,
+        path=bucket_path,
     )
+    print(response)
 
-
-print(response)
 
 

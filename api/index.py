@@ -7,6 +7,7 @@ import cv2 as cv
 import random
 from api.utils import girl_images
 from flask_cors import CORS
+from api.test import save_binary_image_to_bucket
 
 
 app = Flask(__name__)
@@ -15,15 +16,6 @@ app.config['SECRET_KEY'] = 'very_secret'
 app.secret_key = 'very_secret'
 app.config.from_object(__name__)
 CORS(app)
-
-
-def get_new_image_path(user_id, file_extension):
-    new_user_id_dir = os.path.join('../user_images', f'{user_id}')
-    os.makedirs(new_user_id_dir, exist_ok=True)
-    dir_list = glob.glob(f'{new_user_id_dir}/*')
-    dir_count = len(dir_list)
-    new_image_path = os.path.join(new_user_id_dir, f'{dir_count}{file_extension}')
-    return new_image_path
 
 
 @app.route('/buy-monthly-premium', methods=['GET'])
@@ -77,9 +69,14 @@ def upload_image_and_rate():
         img = cv.imdecode(file_bytes, cv.IMREAD_COLOR)
 
         file_extension = f'.{file_name.split(".")[-1]}'
-        session_img_path = get_new_image_path(user_id, file_extension)
-        cv.imwrite(session_img_path, img)
-        db_manager.create_new_image_record(user_id=user_id, is_male=is_male, img_format=file_extension)
+        image_id, user_id, _, _, url, created_at = db_manager.create_new_image_record(user_id=user_id,
+                                                                                      is_male=is_male,
+                                                                                      img_format=file_extension)
+
+        success, encoded_image = cv.imencode(file_extension, img)
+        if success:
+            binary_data = encoded_image.tobytes()
+            save_binary_image_to_bucket(binary_data, url)
 
         return {'images_to_rate': girl_images}
     except ...:
@@ -87,6 +84,5 @@ def upload_image_and_rate():
         return {'images_to_rate': []}, 404
 
 
-@app.route('/', methods=['GET'])
-def upload_image_and_rate():
-    return 'hellooooooo'
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8083)

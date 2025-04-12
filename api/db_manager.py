@@ -15,7 +15,6 @@ def cur_wrapper(func):
     def wrapper(*args, **kwargs):
         con = psycopg2.connect(host=HOST, database=DBNAME, user=USER, password=PASSWORD, port=PORT)
         cur = con.cursor()
-        print('Im in')
         kwargs['cur'] = cur
         result = func(*args, **kwargs)
         con.commit()
@@ -102,13 +101,13 @@ def create_new_image_record(user_id: int, is_male: bool, img_format: str = '.jpg
     INSERT INTO images (is_male, url, user_id)
     VALUES (
     {is_male},
-    (concat('user_images/{user_id}/', currval('images_id_seq')::text, '{img_format}')),
+    (concat('{user_id}/', currval('images_id_seq')::text, '{img_format}')),
     {user_id}
     )
     RETURNING *;
     ''')
     image = cur.fetchone()
-    # (id, user_id, score, is_male, is_male, url, created_at)
+    # (id, user_id, score, is_male, url, created_at)
     return image
 
 
