@@ -27,14 +27,12 @@ def cur_wrapper(func):
 @cur_wrapper
 def create_users_table(cur=None):
     cur.execute('''
-    CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        client_id TEXT NOT NULL,
-        birthday DATE NOT NULL,
-        is_male BOOLEAN NOT NULL,
-        email TEXT DEFAULT '',
+    CREATE TABLE IF NOT EXISTS profiles (
+        id uuid references auth.users(id) primary key,
+        birthday DATE DEFAULT NULL,
+        is_male BOOLEAN DEFAULT NULL,
         is_premium BOOLEAN DEFAULT false,
-        premium_purchase_time TIMESTAMP NULL,
+        premium_purchase_time TIMESTAMP DEFAULT NULL,
         created_at TIMESTAMPTZ DEFAULT now()
     );
     ''')
@@ -45,11 +43,11 @@ def create_images_table(cur=None):
     cur.execute('''
     CREATE TABLE IF NOT EXISTS images (
         id SERIAL PRIMARY KEY,
-        user_id INT NOT NULL,
+        profile_id UUID NOT NULL,
         score FLOAT DEFAULT 1200,
         is_male BOOLEAN NOT NULL,
         url TEXT NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES users(id),
+        FOREIGN KEY (profile_id) REFERENCES profiles(id),
         created_at TIMESTAMPTZ DEFAULT now()
     );
     ''')
@@ -83,8 +81,8 @@ def get_user_from_client_id(client_id: str, birthday: str, is_male: bool, cur=No
     # If user doesn't exist, create one
     if not user:
         cur.execute(f'''
-            INSERT INTO users (client_id, birthday, is_male)
-            VALUES ('{client_id}', '{birthday}', {is_male})
+            INSERT INTO users (birthday, is_male)
+            VALUES ('{birthday}', {is_male})
             RETURNING *;
         ''')
         user = cur.fetchone()
